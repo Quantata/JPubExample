@@ -37,26 +37,35 @@ class MainActivity : AppCompatActivity() {
         updateQuestion()
 
         binding.questionTextView.setOnClickListener {
-            showNextQuestion()
+            getQuestion(true)
         }
 
         binding.btnNext.setOnClickListener{
-            showNextQuestion()
+            getQuestion(true)
         }
 
         binding.btnPrevious.setOnClickListener{
-            showPreviousQuesition()
+            getQuestion(false)
         }
     }
 
-    private fun showNextQuestion() {
-        currentIndex = (currentIndex + 1) % questionBank.size // questionBank.size = 6, currentIndex = 0 일때 다음은 1번째이므로 1%6 = 1, cntIdx = 5(마지막)일땐 다음은 0 번째로
+    private fun getQuestion(isNext: Boolean) {
+        currentIndex =
+            if(isNext)
+                (currentIndex + 1) % questionBank.size // questionBank.size = 6, currentIndex = 0 일때 다음은 1번째이므로 1%6 = 1, cntIdx = 5(마지막)일땐 다음은 0 번째로
+            else
+                (if(currentIndex == 0) 5 else (currentIndex - 1)) % questionBank.size // questionBank.size = 6, currentIndex = 0 일때 다음은 1번째이므로 1%6 = 1, cntIdx = 5(마지막)일땐 다음은 0 번째로
+
         updateQuestion()
+        setBtnAvailable()
     }
 
-    private fun showPreviousQuesition() {
-        currentIndex = (if(currentIndex == 0) 5 else (currentIndex - 1)) % questionBank.size // questionBank.size = 6, currentIndex = 0 일때 다음은 1번째이므로 1%6 = 1, cntIdx = 5(마지막)일땐 다음은 0 번째로
-        updateQuestion()
+    /**
+     * 현재 질문의 isDone 상태에 따라 Btn clickable 설정
+     */
+    private fun setBtnAvailable() {
+        binding.btnTrue.isClickable = !questionBank[currentIndex].isDone
+        binding.btnFalse.isClickable = !questionBank[currentIndex].isDone
     }
 
     private fun updateQuestion() {
@@ -68,8 +77,10 @@ class MainActivity : AppCompatActivity() {
         val correctAnswer = questionBank[currentIndex].answer
 
         val messageResId = if(userAnswer == correctAnswer) {
+            questionBank[currentIndex].isDone = true
             R.string.correct_toast
         } else {
+            questionBank[currentIndex].isDone = false
             R.string.incorrect_toast
         }
 
@@ -78,5 +89,7 @@ class MainActivity : AppCompatActivity() {
             toast.setGravity(Gravity.TOP, 0, 0) // SDK 30 부터는 사용하지 못함
         }
         toast.show()
+
+        setBtnAvailable()
     }
 }
