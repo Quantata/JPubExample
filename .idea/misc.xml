@@ -4,6 +4,7 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.4557291666666667" />
+        <entry key="geoquiz/src/main/res/layout-land/activity_main.xml" value="0.2173721340388007" />
         <entry key="geoquiz/src/main/res/layout/activity_main.xml" value="0.4678442028985507" />
       </map>
     </option>
