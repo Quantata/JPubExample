@@ -48,24 +48,25 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:layout_marginTop="10dp"
             android:layout_gravity="center">
 
-            <Button
+            <ImageButton
                 android:id="@+id/btn_previous"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/previous_button"
-                android:drawableLeft="@drawable/arrow_left"
-                android:drawablePadding="4dp"
-                android:layout_marginEnd="10dp"/>
+                android:src="@drawable/arrow_left"
+                android:layout_marginEnd="20dp"
+                android:contentDescription="@string/previous_button"/>
 
-            <Button
+            <ImageButton
                 android:id="@+id/btn_next"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/next_button"
-                android:drawableEnd="@drawable/arrow_right"
-                android:drawablePadding="4dp"/>
+                android:src="@drawable/arrow_right"
+                android:contentDescription="@string/next_button"/>
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
