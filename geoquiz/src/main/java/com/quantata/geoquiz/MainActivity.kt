@@ -36,16 +36,34 @@ class MainActivity : AppCompatActivity() {
         // 현재 index 가 가르키는 질문 텍스트를 TextView 에 설정
         updateQuestion()
 
-        binding.btnNext.setOnClickListener{
-            currentIndex = (currentIndex + 1) % questionBank.size // questionBank.size = 6, currentIndex = 0 일때 다음은 1번째이므로 1%6 = 1, cntIdx = 5(마지막)일땐 다음은 0 번째로
-            updateQuestion()
+        binding.questionTextView.setOnClickListener {
+            showNextQuestion()
         }
+
+        binding.btnNext.setOnClickListener{
+            showNextQuestion()
+        }
+
+        binding.btnPrevious.setOnClickListener{
+            showPreviousQuesition()
+        }
+    }
+
+    private fun showNextQuestion() {
+        currentIndex = (currentIndex + 1) % questionBank.size // questionBank.size = 6, currentIndex = 0 일때 다음은 1번째이므로 1%6 = 1, cntIdx = 5(마지막)일땐 다음은 0 번째로
+        updateQuestion()
+    }
+
+    private fun showPreviousQuesition() {
+        currentIndex = (if(currentIndex == 0) 5 else (currentIndex - 1)) % questionBank.size // questionBank.size = 6, currentIndex = 0 일때 다음은 1번째이므로 1%6 = 1, cntIdx = 5(마지막)일땐 다음은 0 번째로
+        updateQuestion()
     }
 
     private fun updateQuestion() {
         val questionTextResId = questionBank[currentIndex].textResId
         binding.questionTextView.setText(questionTextResId) // 초기에는 currentIndex 가 0 이니 0번째 값을 설정
     }
+
     private fun checkAnswer(userAnswer: Boolean) {
         val correctAnswer = questionBank[currentIndex].answer
 
