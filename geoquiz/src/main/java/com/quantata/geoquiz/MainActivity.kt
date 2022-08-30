@@ -4,8 +4,12 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Gravity
+import android.view.View
 import android.widget.Toast
+import androidx.annotation.StringRes
 import com.quantata.geoquiz.databinding.ActivityMainBinding
+import java.lang.Math.round
+import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,6 +23,9 @@ class MainActivity : AppCompatActivity() {
         Question(R.string.question_asia, true),
     )
     private var currentIndex = 0
+
+    private val totalCount = questionBank.size
+    private var answeredCount = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,8 +71,8 @@ class MainActivity : AppCompatActivity() {
      * 현재 질문의 isDone 상태에 따라 Btn clickable 설정
      */
     private fun setBtnAvailable() {
-        binding.btnTrue.isClickable = !questionBank[currentIndex].isDone
-        binding.btnFalse.isClickable = !questionBank[currentIndex].isDone
+        binding.btnTrue.isClickable = !questionBank[currentIndex].isCorrect
+        binding.btnFalse.isClickable = !questionBank[currentIndex].isCorrect
     }
 
     private fun updateQuestion() {
@@ -74,13 +81,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAnswer(userAnswer: Boolean) {
+        if(!questionBank[currentIndex].isAnswered) // 답을 안했을 경우에만 answeredCount 올림
+            answeredCount += 1
+        questionBank[currentIndex].isAnswered = true
+
         val correctAnswer = questionBank[currentIndex].answer
 
         val messageResId = if(userAnswer == correctAnswer) {
-            questionBank[currentIndex].isDone = true
+            questionBank[currentIndex].isCorrect = true // 답을 맞췄을때 Clickable = false
             R.string.correct_toast
         } else {
-            questionBank[currentIndex].isDone = false
+            questionBank[currentIndex].isCorrect = false
             R.string.incorrect_toast
         }
 
@@ -91,5 +102,17 @@ class MainActivity : AppCompatActivity() {
         toast.show()
 
         setBtnAvailable()
+
+        // 모든 질문에 대답했는지 확인
+        if(totalCount == answeredCount) {
+            binding.questionTextView.visibility = View.GONE
+            binding.resultTextView.visibility = View.VISIBLE
+
+            var correctAnswer = 0.00
+            for(question in questionBank) {
+                correctAnswer += if(question.isCorrect) 1 else 0
+            }
+            binding.resultTextView.text = "정답율: ${((correctAnswer / totalCount) * 100).roundToInt()}%"
+        }
     }
 }
