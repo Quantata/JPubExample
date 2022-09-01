@@ -3,34 +3,35 @@ package com.quantata.geoquiz
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.StringRes
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.quantata.geoquiz.databinding.ActivityMainBinding
 import java.lang.Math.round
 import kotlin.math.roundToInt
 
+private const val KEY_INDEX = "index"
+private const val TAG = "MainActivity"
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val questionBank = listOf(
-        Question(R.string.question_australia, true),
-        Question(R.string.question_oceans, true),
-        Question(R.string.question_mideast, false),
-        Question(R.string.question_africa, false),
-        Question(R.string.question_americas, true),
-        Question(R.string.question_asia, true),
-    )
-    private var currentIndex = 0
 
-    private val totalCount = questionBank.size
-    private var answeredCount = 0
+    private val quizViewModel by lazy {
+        ViewModelProvider(this)[QuizViewModel::class.java]
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+//        if(quizViewModel.currentIndex == 0)
+         quizViewModel.currentIndex = savedInstanceState?.getInt(KEY_INDEX, 0) ?: 0
 
         binding.btnTrue.setOnClickListener {
             checkAnswer(true)
@@ -40,8 +41,10 @@ class MainActivity : AppCompatActivity() {
             checkAnswer(false)
         }
 
-        // 현재 index 가 가르키는 질문 텍스트를 TextView 에 설정
-        updateQuestion()
+        if(quizViewModel.totalCount != quizViewModel.answeredCount)
+            updateQuestion() // 현재 index 가 가르키는 질문 텍스트를 TextView 에 설정
+        else
+            setResult()
 
         binding.questionTextView.setOnClickListener {
             getQuestion(true)
@@ -57,12 +60,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getQuestion(isNext: Boolean) {
-        currentIndex =
             if(isNext)
-                (currentIndex + 1) % questionBank.size // questionBank.size = 6, currentIndex = 0 일때 다음은 1번째이므로 1%6 = 1, cntIdx = 5(마지막)일땐 다음은 0 번째로
+                quizViewModel.moveToNext()
             else
-                (if(currentIndex == 0) 5 else (currentIndex - 1)) % questionBank.size // questionBank.size = 6, currentIndex = 0 일때 다음은 1번째이므로 1%6 = 1, cntIdx = 5(마지막)일땐 다음은 0 번째로
-
+                quizViewModel.moveToPrevious()
         updateQuestion()
         setBtnAvailable()
     }
@@ -71,27 +72,26 @@ class MainActivity : AppCompatActivity() {
      * 현재 질문의 isDone 상태에 따라 Btn clickable 설정
      */
     private fun setBtnAvailable() {
-        binding.btnTrue.isClickable = !questionBank[currentIndex].isCorrect
-        binding.btnFalse.isClickable = !questionBank[currentIndex].isCorrect
+        binding.btnTrue.isClickable = !quizViewModel.currentQuestionIsCorrect
+        binding.btnFalse.isClickable = !quizViewModel.currentQuestionIsCorrect
     }
 
     private fun updateQuestion() {
-        val questionTextResId = questionBank[currentIndex].textResId
+        val questionTextResId = quizViewModel.currentQuestionText
         binding.questionTextView.setText(questionTextResId) // 초기에는 currentIndex 가 0 이니 0번째 값을 설정
     }
 
     private fun checkAnswer(userAnswer: Boolean) {
-        if(!questionBank[currentIndex].isAnswered) // 답을 안했을 경우에만 answeredCount 올림
-            answeredCount += 1
-        questionBank[currentIndex].isAnswered = true
+        if(!quizViewModel.currentQuestionIsAnswered) // 답을 안했을 경우에만 answeredCount 올림
+            quizViewModel.answeredCount += 1
+        quizViewModel.setIsAnswered(true)
 
-        val correctAnswer = questionBank[currentIndex].answer
 
-        val messageResId = if(userAnswer == correctAnswer) {
-            questionBank[currentIndex].isCorrect = true // 답을 맞췄을때 Clickable = false
+        val messageResId = if(userAnswer == quizViewModel.currentQuestionAnswer) {
+            quizViewModel.setIsCorrect(true) // 답을 맞췄을때 Clickable = false
             R.string.correct_toast
         } else {
-            questionBank[currentIndex].isCorrect = false
+            quizViewModel.setIsCorrect(false)
             R.string.incorrect_toast
         }
 
@@ -102,17 +102,34 @@ class MainActivity : AppCompatActivity() {
         toast.show()
 
         setBtnAvailable()
+        if(quizViewModel.totalCount == quizViewModel.answeredCount)
+            setResult()
 
+    }
+
+    private fun setResult() {
         // 모든 질문에 대답했는지 확인
-        if(totalCount == answeredCount) {
-            binding.questionTextView.visibility = View.GONE
-            binding.resultTextView.visibility = View.VISIBLE
+        binding.questionTextView.visibility = View.GONE
+        binding.resultTextView.visibility = View.VISIBLE
 
-            var correctAnswer = 0.00
-            for(question in questionBank) {
-                correctAnswer += if(question.isCorrect) 1 else 0
-            }
-            binding.resultTextView.text = "정답율: ${((correctAnswer / totalCount) * 100).roundToInt()}%"
+        var correctAnswer = 0.00
+        for(question in quizViewModel.questionBank) {
+            correctAnswer += if(question.isCorrect) 1 else 0
         }
+        quizViewModel.resultText = "정답율: ${((correctAnswer / quizViewModel.totalCount) * 100).roundToInt()}%"
+        binding.resultTextView.text = quizViewModel.resultText
+    }
+
+    /**
+     * 앱이 백그라운드에서 프로세스에 의해 종료되었을 경우 어떤 오버라이드 함수도 호출되지 않기 때문에
+     * 일시적으로 액티비티 외부에 저장하는 데이터인 onSaveInstanceState를 오버라이드하여 데이터 저장
+     *
+     * 백그라운드에서 호출되어 지워졌다해도 onSaveInstanceState는 onPause() 즉, 중단상태에서
+     * 호출되기 때문에 이미 데이터는 저장되어 있음.
+     */
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        Log.d(TAG, "onSaveInstanceState")
+        outState.putInt(KEY_INDEX, quizViewModel.currentIndex)
     }
 }
