@@ -101,8 +101,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAnswer(userAnswer: Boolean) {
-        if(!quizViewModel.currentQuestionIsAnswered) // 답을 안했을 경우에만 answeredCount 올림 -> 했을때는 이미 count 올렸을테니까
+        if(!quizViewModel.currentQuestionIsAnswered) { // 답을 안했을 경우에만 answeredCount 올림 -> 했을때는 이미 count 올렸을테니까
             quizViewModel.answeredCount += 1
+            if(quizViewModel.isCheater) quizViewModel.cheatCount += 1
+        }
+        binding.btnCheat.isClickable = quizViewModel.cheatCount < 3
+
         quizViewModel.setIsAnswered(true)
 
 //        val messageResId = if(userAnswer == quizViewModel.currentQuestionAnswer) {

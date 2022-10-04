@@ -18,6 +18,7 @@ class QuizViewModel : ViewModel() {
 
     val isCheater: Boolean
         get() = questionBank[currentIndex].isCheated
+    var cheatCount = 0
 
     val totalCount = questionBank.size
     var answeredCount = 0
