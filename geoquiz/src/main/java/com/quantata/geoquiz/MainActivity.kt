@@ -1,5 +1,7 @@
 package com.quantata.geoquiz
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -16,6 +18,7 @@ import kotlin.math.roundToInt
 
 private const val KEY_INDEX = "index"
 private const val TAG = "MainActivity"
+private const val REQUEST_CODE_CHEAT = 0
 
 class MainActivity : AppCompatActivity() {
 
@@ -57,6 +60,16 @@ class MainActivity : AppCompatActivity() {
         binding.btnPrevious.setOnClickListener{
             getQuestion(false)
         }
+
+        binding.btnCheat.setOnClickListener {
+            // CheatActivity 시작
+//            val intent = Intent(this, CheatActivity::class.java)
+//            startActivity(intent)
+            val answerIsTrue = quizViewModel.currentQuestionAnswer
+            val intent = CheatActivity.newIntent(this@MainActivity, answerIsTrue)
+//            startActivity(intent)
+            startActivityForResult(intent, REQUEST_CODE_CHEAT)
+        }
     }
 
     private fun getQuestion(isNext: Boolean) {
@@ -82,17 +95,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAnswer(userAnswer: Boolean) {
-        if(!quizViewModel.currentQuestionIsAnswered) // 답을 안했을 경우에만 answeredCount 올림
+        if(!quizViewModel.currentQuestionIsAnswered) // 답을 안했을 경우에만 answeredCount 올림 -> 했을때는 이미 count 올렸을테니까
             quizViewModel.answeredCount += 1
         quizViewModel.setIsAnswered(true)
 
+//        val messageResId = if(userAnswer == quizViewModel.currentQuestionAnswer) {
+//            quizViewModel.setIsCorrect(true) // 답을 맞췄을때 Clickable = false
+//            R.string.correct_toast
+//        } else {
+//            quizViewModel.setIsCorrect(false)
+//            R.string.incorrect_toast
+//        }
 
-        val messageResId = if(userAnswer == quizViewModel.currentQuestionAnswer) {
-            quizViewModel.setIsCorrect(true) // 답을 맞췄을때 Clickable = false
-            R.string.correct_toast
-        } else {
-            quizViewModel.setIsCorrect(false)
-            R.string.incorrect_toast
+        val correctAnswer: Boolean = quizViewModel.currentQuestionAnswer
+        val messageResId = when {
+            quizViewModel.isCheater -> {
+                R.string.judgement_toast
+            }
+            userAnswer == correctAnswer -> {
+                quizViewModel.setIsCorrect(true) // 답을 맞췄을때 Clickable = false
+                R.string.correct_toast
+            }
+            else -> {
+                quizViewModel.setIsCorrect(false)
+                R.string.incorrect_toast
+            }
         }
 
         val toast = Toast.makeText(this, messageResId, Toast.LENGTH_SHORT)
@@ -131,5 +158,23 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         Log.d(TAG, "onSaveInstanceState")
         outState.putInt(KEY_INDEX, quizViewModel.currentIndex)
+    }
+
+    /**
+     * requestCode : MainActivity 에서 요청한 코드
+     * resultCode : SubActivity 에서 보낸 코드
+     * data : SubActivity 에서 보낸 data
+     */
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if(resultCode != Activity.RESULT_OK) {
+            return
+        }
+
+        if(requestCode == REQUEST_CODE_CHEAT) {
+            quizViewModel.setIsCheated(data?.getBooleanExtra(EXTRA_ANSWER_SHOWN, false) ?: false)
+//            quizViewModel.isCheater = data?.getBooleanExtra(EXTRA_ANSWER_SHOWN, false) ?: false
+        }
     }
 }

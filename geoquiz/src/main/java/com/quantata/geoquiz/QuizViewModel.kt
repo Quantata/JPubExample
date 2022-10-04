@@ -14,6 +14,10 @@ class QuizViewModel : ViewModel() {
         Question(R.string.question_asia, true),
     )
     var currentIndex = 0
+//    var isCheater = false
+
+    val isCheater: Boolean
+        get() = questionBank[currentIndex].isCheated
 
     val totalCount = questionBank.size
     var answeredCount = 0
@@ -41,5 +45,9 @@ class QuizViewModel : ViewModel() {
 
     fun moveToPrevious() {
         currentIndex = (if(currentIndex == 0) 5 else (currentIndex - 1)) % questionBank.size // questionBank.size = 6, currentIndex = 0 일때 다음은 1번째이므로 1%6 = 1, cntIdx = 5(마지막)일땐 다음은 0 번째로
+    }
+
+    fun setIsCheated(isCheated: Boolean) {
+        questionBank[currentIndex].isCheated = isCheated
     }
 }
