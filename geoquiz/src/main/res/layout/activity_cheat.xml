@@ -35,6 +35,13 @@
             android:id="@+id/show_answer_button"
             android:text="@string/show_answer_button"/>
 
+        <TextView
+            android:id="@+id/api_level_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="API 레벨은 무엇일까요"
+            android:padding="24dp"/>
+
     </androidx.appcompat.widget.LinearLayoutCompat>
 
 

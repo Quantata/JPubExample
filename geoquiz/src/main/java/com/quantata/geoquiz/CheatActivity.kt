@@ -3,6 +3,7 @@ package com.quantata.geoquiz
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -41,6 +42,8 @@ class CheatActivity : AppCompatActivity() {
             isCheat = true
             setAnswerShownResult(true) // 정답을 봤다는 흔적을 MainActivity 에 알려줌.
         }
+
+        binding.apiLevelTextView.setText("API 레벨 ${(Build.VERSION.SDK_INT).toString()}")
     }
 
     private fun setAnswerShownResult(isAnswerShown: Boolean) {
