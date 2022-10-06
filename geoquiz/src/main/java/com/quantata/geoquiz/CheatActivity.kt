@@ -10,7 +10,7 @@ import android.util.Log
 import com.quantata.geoquiz.databinding.ActivityCheatBinding
 
 private const val EXTRA_ANSWER_IS_TRUE = "com.quantata.android.geoquiz.answer_is_true"
-const val EXTRA_ANSWER_SHOWN = "com.bignerdranch.android.geoquiz.answer_shown"
+const val EXTRA_ANSWER_SHOWN = "com.quantata.android.geoquiz.answer_shown"
 private const val KEY_IS_CHEAT = "isCheat"
 private const val TAG = "CheatActivity"
 
