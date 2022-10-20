@@ -2,14 +2,25 @@ package com.nancone.criminalintent.ui
 
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.nancone.criminalintent.R
 import com.nancone.criminalintent.model.Crime
 import com.nancone.criminalintent.viewmodel.CrimeListViewModel
 
 private const val TAG = "CrimeListFragment"
 
 class CrimeListFragment : Fragment() {
+
+    private lateinit var crimeRecyclerView: RecyclerView
+    private var adapter: CrimeAdapter? = null
 
     // CrimeListViewModel 참조
     // ViewModel이 Fragment와 같이 사용되면 ViewModel의 생명주기는 Fragment의 생명주기를 따라감
@@ -24,9 +35,79 @@ class CrimeListFragment : Fragment() {
         Log.d(TAG, "onCreate: Total crimes: ${crimeListViewModel.crimes.size}")
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        var view = inflater.inflate(R.layout.fragment_crime_list, container, false)
+
+        // recyclerview 설정
+        crimeRecyclerView =
+            view.findViewById(R.id.crime_recycler_view) as RecyclerView
+        crimeRecyclerView.layoutManager = LinearLayoutManager(context)
+
+        updateUI()
+
+        return view
+    }
+
+    private fun updateUI() {
+        val crimes = crimeListViewModel.crimes
+        adapter = CrimeAdapter(crimes)
+        crimeRecyclerView.adapter = adapter
+    }
+
     companion object {
         fun newInstance(): CrimeListFragment {
             return CrimeListFragment()
         }
+    }
+
+    // ViewHolder
+    private inner class CrimeHolder(view: View) : RecyclerView.ViewHolder(view), View.OnClickListener {
+
+        private lateinit var crime: Crime
+
+        private val titleTextView: TextView = itemView.findViewById(R.id.crime_title)
+        private val dateTextView: TextView = itemView.findViewById(R.id.crime_date)
+
+        init {
+            itemView.setOnClickListener(this)
+        }
+
+        fun bind(crime: Crime) {
+            this.crime = crime
+            titleTextView.text = crime.title
+            dateTextView.text = crime.date.toString()
+        }
+
+        override fun onClick(v: View) {
+            Toast.makeText(context, "${crime.title} pressed!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private inner class CrimeAdapter(var crimes: List<Crime>) : RecyclerView.Adapter<CrimeHolder>() {
+
+        // onCreateViewHolder 에서 item 틀에 맞춰 ViewHolder 만들고 해당 ViewHolder 가 화면에 보여질만큼 충분히
+        // 만들어지면 이제 그 View 는 재사용함 9
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CrimeHolder {
+            val view = layoutInflater.inflate(R.layout.list_item_crime, parent, false)
+            // CrimeHolder Instance 생성: 아직 CrimeHolder 에 데이터는 반영되지 않음
+            return CrimeHolder(view)
+        }
+
+        // onBindViewHolder 에서 CrimeHolder 와 데이터셋 내부 위치를 전달
+        override fun onBindViewHolder(holder: CrimeHolder, position: Int) {
+            val crime= crimes[position]
+            holder.bind(crime)
+//            holder.apply { // CrimeHolder(=View) 에 Data 세팅
+//                titleTextView.text = crime.title
+//                dateTextView.text = crime.date.toString()
+//            }
+        }
+
+        override fun getItemCount(): Int = crimes.size
+
     }
 }
