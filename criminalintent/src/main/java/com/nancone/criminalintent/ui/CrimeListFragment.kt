@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.nancone.criminalintent.R
 import com.nancone.criminalintent.model.Crime
+import com.nancone.criminalintent.model.CrimeType
 import com.nancone.criminalintent.viewmodel.CrimeListViewModel
 
 private const val TAG = "CrimeListFragment"
@@ -40,7 +42,7 @@ class CrimeListFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        var view = inflater.inflate(R.layout.fragment_crime_list, container, false)
+        val view = inflater.inflate(R.layout.fragment_crime_list, container, false)
 
         // recyclerview 설정
         crimeRecyclerView =
@@ -86,21 +88,70 @@ class CrimeListFragment : Fragment() {
             Toast.makeText(context, "${crime.title} pressed!", Toast.LENGTH_SHORT).show()
         }
     }
+    private inner class CrimeRequirePoliceHolder(view: View) : RecyclerView.ViewHolder(view), View.OnClickListener {
 
-    private inner class CrimeAdapter(var crimes: List<Crime>) : RecyclerView.Adapter<CrimeHolder>() {
+        private lateinit var crime: Crime
+
+        private val titleTextView: TextView = itemView.findViewById(R.id.crime_title)
+        private val dateTextView: TextView = itemView.findViewById(R.id.crime_date)
+        private val callPoliceBtn: Button = itemView.findViewById(R.id.call_police_btn)
+
+        init {
+            callPoliceBtn.setOnClickListener(this)
+            titleTextView.setOnClickListener(this)
+//            itemView.setOnClickListener(this)
+        }
+
+        fun bind(crime: Crime) {
+            this.crime = crime
+            titleTextView.text = crime.title
+            dateTextView.text = crime.date.toString()
+        }
+
+        override fun onClick(v: View) {
+           when(v.id) {
+               R.id.crime_title -> Toast.makeText(context, "${crime.title} pressed!", Toast.LENGTH_SHORT).show()
+               R.id.call_police_btn -> Toast.makeText(context, "Call Police", Toast.LENGTH_SHORT).show()
+
+           }
+        }
+    }
+
+
+    private inner class CrimeAdapter(var crimes: List<Crime>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+        override fun getItemViewType(position: Int): Int {
+//            super.getItemViewType(position)
+            return crimes[position].requiresPolice
+        }
 
         // onCreateViewHolder 에서 item 틀에 맞춰 ViewHolder 만들고 해당 ViewHolder 가 화면에 보여질만큼 충분히
-        // 만들어지면 이제 그 View 는 재사용함 9
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CrimeHolder {
-            val view = layoutInflater.inflate(R.layout.list_item_crime, parent, false)
-            // CrimeHolder Instance 생성: 아직 CrimeHolder 에 데이터는 반영되지 않음
-            return CrimeHolder(view)
+        // 만들어지면 이제 그 View 는 재사용함
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            var view: View? = null
+            return when(viewType) {
+                CrimeType.requiresPoliceCrime -> {
+                    view = layoutInflater.inflate(R.layout.list_item_crime_requires_police, parent, false)
+                    CrimeRequirePoliceHolder(view)
+                }
+                else -> {
+                    view = layoutInflater.inflate(R.layout.list_item_crime, parent, false)
+                    CrimeHolder(view)
+                }
+            }
+//            val view = layoutInflater.inflate(R.layout.list_item_crime, parent, false)
+//            // CrimeHolder Instance 생성: 아직 CrimeHolder 에 데이터는 반영되지 않음
+//            return CrimeHolder(view)
         }
 
         // onBindViewHolder 에서 CrimeHolder 와 데이터셋 내부 위치를 전달
-        override fun onBindViewHolder(holder: CrimeHolder, position: Int) {
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             val crime= crimes[position]
-            holder.bind(crime)
+            when(holder) {
+                is CrimeHolder -> holder.bind(crime)
+                is CrimeRequirePoliceHolder -> holder.bind(crime)
+            }
+//            holder.bind(crime)
 //            holder.apply { // CrimeHolder(=View) 에 Data 세팅
 //                titleTextView.text = crime.title
 //                dateTextView.text = crime.date.toString()

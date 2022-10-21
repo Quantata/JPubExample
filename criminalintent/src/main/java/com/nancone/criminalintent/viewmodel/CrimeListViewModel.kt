@@ -2,6 +2,7 @@ package com.nancone.criminalintent.viewmodel
 
 import androidx.lifecycle.ViewModel
 import com.nancone.criminalintent.model.Crime
+import com.nancone.criminalintent.model.CrimeType
 
 class CrimeListViewModel : ViewModel() {
     val crimes = mutableListOf<Crime>()
@@ -11,6 +12,7 @@ class CrimeListViewModel : ViewModel() {
             val crime = Crime()
             crime.title = "Crime #$i"
             crime.isSolved = i % 2 == 0
+            crime.requiresPolice = if(i%3 == 0) CrimeType.requiresPoliceCrime else CrimeType.normalCrime
             crimes += crime
         }
     }
