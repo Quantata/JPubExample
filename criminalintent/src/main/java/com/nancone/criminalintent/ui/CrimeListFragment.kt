@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -16,6 +17,8 @@ import com.nancone.criminalintent.R
 import com.nancone.criminalintent.model.Crime
 import com.nancone.criminalintent.model.CrimeType
 import com.nancone.criminalintent.viewmodel.CrimeListViewModel
+import java.text.DateFormat
+import java.util.*
 
 private const val TAG = "CrimeListFragment"
 
@@ -73,6 +76,7 @@ class CrimeListFragment : Fragment() {
 
         private val titleTextView: TextView = itemView.findViewById(R.id.crime_title)
         private val dateTextView: TextView = itemView.findViewById(R.id.crime_date)
+        private val crimeSolved: ImageView = itemView.findViewById(R.id.crime_solved)
 
         init {
             itemView.setOnClickListener(this)
@@ -81,13 +85,17 @@ class CrimeListFragment : Fragment() {
         fun bind(crime: Crime) {
             this.crime = crime
             titleTextView.text = crime.title
-            dateTextView.text = crime.date.toString()
+            val dateFormat = DateFormat.getDateInstance(DateFormat.FULL, Locale.US)
+            dateTextView.text = dateFormat.format(crime.date).toString()
+//            dateTextView.text = crime.date.toString()
+            crimeSolved.visibility = if(crime.isSolved) View.VISIBLE else View.GONE
         }
 
         override fun onClick(v: View) {
             Toast.makeText(context, "${crime.title} pressed!", Toast.LENGTH_SHORT).show()
         }
     }
+
     private inner class CrimeRequirePoliceHolder(view: View) : RecyclerView.ViewHolder(view), View.OnClickListener {
 
         private lateinit var crime: Crime
@@ -95,6 +103,7 @@ class CrimeListFragment : Fragment() {
         private val titleTextView: TextView = itemView.findViewById(R.id.crime_title)
         private val dateTextView: TextView = itemView.findViewById(R.id.crime_date)
         private val callPoliceBtn: Button = itemView.findViewById(R.id.call_police_btn)
+        private val crimeSolved: ImageView = itemView.findViewById(R.id.crime_solved)
 
         init {
             callPoliceBtn.setOnClickListener(this)
@@ -106,6 +115,7 @@ class CrimeListFragment : Fragment() {
             this.crime = crime
             titleTextView.text = crime.title
             dateTextView.text = crime.date.toString()
+            crimeSolved.visibility = if(crime.isSolved) View.VISIBLE else View.GONE
         }
 
         override fun onClick(v: View) {

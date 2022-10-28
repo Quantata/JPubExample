@@ -12,6 +12,8 @@ import android.widget.EditText
 import androidx.fragment.app.Fragment
 import com.nancone.criminalintent.R
 import com.nancone.criminalintent.model.Crime
+import java.text.DateFormat
+import java.util.*
 
 class CrimeFragment : Fragment() {
     private lateinit var crime: Crime
