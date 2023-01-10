@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
 
     override fun onCrimesSelected(crimeId: UUID) {
         Log.d(TAG, "onCrimesSelected: $crimeId")
-        val fragment = CrimeFragment()
+        val fragment = CrimeFragment.newInstance(crimeId)
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.fragment_container, fragment)
