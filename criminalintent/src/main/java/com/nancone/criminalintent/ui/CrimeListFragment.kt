@@ -1,5 +1,6 @@
 package com.nancone.criminalintent.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -23,7 +24,23 @@ import java.util.*
 private const val TAG = "CrimeListFragment"
 
 class CrimeListFragment : Fragment() {
+    /**
+     * 호스팅 액티비티에서 구현할 인터페이스
+     */
+    interface Callbacks {
+        fun onCrimesSelected(crimeId: UUID)
+    }
+    private var callbacks: Callbacks? = null
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        callbacks = context as Callbacks?
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        callbacks = null
+    }
     private lateinit var crimeRecyclerView: RecyclerView
     private var adapter: CrimeAdapter? = CrimeAdapter(emptyList()) // initialize empty list
 

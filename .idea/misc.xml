@@ -4,11 +4,14 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.4557291666666667" />
+        <entry key="criminalintent/src/main/res/drawable/ic_launcher_background.xml" value="0.1625" />
         <entry key="criminalintent/src/main/res/layout/activity_main.xml" value="0.22760416666666666" />
         <entry key="criminalintent/src/main/res/layout/fragment_crime.xml" value="0.2265625" />
         <entry key="criminalintent/src/main/res/layout/fragment_crime_list.xml" value="0.22760416666666666" />
         <entry key="criminalintent/src/main/res/layout/list_item_crime.xml" value="0.5072189331054687" />
         <entry key="criminalintent/src/main/res/layout/list_item_crime_requires_police.xml" value="0.4395833333333333" />
+        <entry key="criminalintent/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.1625" />
+        <entry key="criminalintent/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.1625" />
         <entry key="geoquiz/src/main/res/layout-land/activity_main.xml" value="0.2173721340388007" />
         <entry key="geoquiz/src/main/res/layout/activity_cheat.xml" value="0.23697916666666666" />
         <entry key="geoquiz/src/main/res/layout/activity_main.xml" value="0.4678442028985507" />
