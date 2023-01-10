@@ -34,7 +34,7 @@ class CrimeListFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        callbacks = context as Callbacks?
+        callbacks = context as Callbacks? // Callback 형식으로 캐스팅하면 CrimeListFragment를 호스팅하는 Activity는 무조건 callback을 구현해줘야 함
     }
 
     override fun onDetach() {
@@ -115,7 +115,8 @@ class CrimeListFragment : Fragment() {
         }
 
         override fun onClick(v: View) {
-            Toast.makeText(context, "${crime.title} pressed!", Toast.LENGTH_SHORT).show()
+            callbacks?.onCrimesSelected(crimeId = crime.id)
+//            Toast.makeText(context, "${crime.title} pressed!", Toast.LENGTH_SHORT).show()
         }
     }
 
