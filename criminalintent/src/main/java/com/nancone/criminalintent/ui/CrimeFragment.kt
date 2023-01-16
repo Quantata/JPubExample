@@ -38,7 +38,6 @@ class CrimeFragment : Fragment() {
      * Fragment 에서는 View 를 onCreate 에서 inflate(객체화 시켜 메모리에 올려놓는 것(layout 을 원하는 것으로 변경 가능)) 하지 않음.
      * onCreateView 에서 생성하고 구성함
      */
-    lateinit var crimeId2: UUID
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         crime = Crime()
@@ -93,7 +92,11 @@ class CrimeFragment : Fragment() {
     private fun updateUI() {
         titleField.setText(crime.title)
         dateButton.text = crime.date.toString()
-        solvedCheckBox.isChecked = crime.isSolved
+//        solvedCheckBox.isChecked = crime.isSolved
+        solvedCheckBox.apply {
+            isChecked = crime.isSolved
+            jumpDrawablesToCurrentState() // 애니메이션 생략
+        }
     }
 
     override fun onStart() {
@@ -119,6 +122,10 @@ class CrimeFragment : Fragment() {
         }
     }
 
+    override fun onStop() {
+        super.onStop()
+        crimeListViewModel.saveCrime(crime)
+    }
     companion object {
         fun newInstance(crimeId: UUID): CrimeFragment {
             val args = Bundle().apply {

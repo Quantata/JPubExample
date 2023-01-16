@@ -23,6 +23,10 @@ class CrimeListViewModel : ViewModel() {
     fun loadCrime(crimeId: UUID) {
         crimeIdLiveData.value = crimeId
     }
+
+    fun saveCrime(crime:Crime) {
+        crimeRepository.updateCrime(crime)
+    }
 //    val crimes = crimeRepository.getCrimes()
 
 //    val crimes = mutableListOf<Crime>()
