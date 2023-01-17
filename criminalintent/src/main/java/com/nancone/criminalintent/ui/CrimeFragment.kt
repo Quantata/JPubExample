@@ -120,7 +120,13 @@ class CrimeFragment : Fragment() {
         }
 
         dateButton.setOnClickListener {
-            DatePickerFragment().apply {
+//            DatePickerFragment().apply {
+//                // FragmentTransaction 을 쓰면 트랜잭션 생성 후 커밋해줘야하는데
+//                // FragmentManager 는 자동으로 트랜잭션을 만들고 커밋해줌
+//                show(this@CrimeFragment.parentFragmentManager, DIALOG_DATE)
+//            }
+
+            DatePickerFragment.newInstance(crime.date).apply {
                 // FragmentTransaction 을 쓰면 트랜잭션 생성 후 커밋해줘야하는데
                 // FragmentManager 는 자동으로 트랜잭션을 만들고 커밋해줌
                 show(this@CrimeFragment.parentFragmentManager, DIALOG_DATE)
