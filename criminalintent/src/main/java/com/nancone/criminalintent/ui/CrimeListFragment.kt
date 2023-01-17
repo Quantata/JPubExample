@@ -12,8 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.*
 import com.nancone.criminalintent.R
 import com.nancone.criminalintent.model.Crime
 import com.nancone.criminalintent.model.CrimeType
@@ -42,7 +41,8 @@ class CrimeListFragment : Fragment() {
         callbacks = null
     }
     private lateinit var crimeRecyclerView: RecyclerView
-    private var adapter: CrimeAdapter? = CrimeAdapter(emptyList()) // initialize empty list
+//    private var adapter: CrimeAdapter? = CrimeAdapter(emptyList()) // initialize empty list
+    private var adapter: CrimeAdapter? = CrimeAdapter() // initialize empty list
 
     // CrimeListViewModel 참조
     // ViewModel이 Fragment와 같이 사용되면 ViewModel의 생명주기는 Fragment의 생명주기를 따라감
@@ -75,15 +75,16 @@ class CrimeListFragment : Fragment() {
             androidx.lifecycle.Observer { crimes ->
                 crimes?.let {
                     Log.d(TAG, "onViewCreated: Got crimes ${crimes.size}")
-                    updateUI(crimes)
+                    adapter?.submitList(crimes)
+//                    updateUI(crimes)
                 }
             }
         )
     }
 
     private fun updateUI(crimes: List<Crime>) {
-        adapter = CrimeAdapter(crimes)
-        crimeRecyclerView.adapter = adapter
+//        adapter = CrimeAdapter(crimes)
+//        crimeRecyclerView.adapter = adapter
     }
 
     companion object {
@@ -143,20 +144,42 @@ class CrimeListFragment : Fragment() {
         }
 
         override fun onClick(v: View) {
-           when(v.id) {
-               R.id.crime_title -> Toast.makeText(context, "${crime.title} pressed!", Toast.LENGTH_SHORT).show()
-               R.id.call_police_btn -> Toast.makeText(context, "Call Police", Toast.LENGTH_SHORT).show()
-
-           }
+            when(v.id) {
+                R.id.crime_title -> callbacks?.onCrimesSelected(crimeId = crime.id)
+                R.id.call_police_btn -> Toast.makeText(context, "Call Police", Toast.LENGTH_SHORT).show()
+            }
+//            when(v.id) {
+//               R.id.crime_title -> Toast.makeText(context, "${crime.title} pressed!", Toast.LENGTH_SHORT).show()
+//               R.id.call_police_btn -> Toast.makeText(context, "Call Police", Toast.LENGTH_SHORT).show()
+//
+//           }
         }
     }
 
+    // 이전 Item, Content와 비교해서 일치하면 true, 아니면 false 를 return 하여 내용이 달라졌는지 확인하는 함수
+    object CrimeDiffUtil : DiffUtil.ItemCallback<Crime>() {
+        override fun areItemsTheSame(oldItem: Crime, newItem: Crime): Boolean {
+            return oldItem.id == newItem.id
+        }
 
-    private inner class CrimeAdapter(var crimes: List<Crime>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+        override fun areContentsTheSame(oldItem: Crime, newItem: Crime): Boolean {
+            return oldItem == newItem
+        }
+
+    }
+
+    private inner class CrimeAdapter : ListAdapter<Crime, RecyclerView.ViewHolder>(CrimeDiffUtil) {
+        // ListAdapter 는 async 없어도 DiffUtil을 background 에서 실행시켜 줌
+//        private val asyncListDiffer: AsyncListDiffer<Crime> = AsyncListDiffer(this, CrimeDiffUtil)
+//
+//        fun replaceList(list: List<Crime>) {
+//            asyncListDiffer.submitList(list)
+//        }
 
         override fun getItemViewType(position: Int): Int {
 //            super.getItemViewType(position)
-            return crimes[position].requiresPolice
+//            return crimes[position].requiresPolice
+            return getItem(position).requiresPolice // ListAdapter에서 사용할 수 있는 함수
         }
 
         // onCreateViewHolder 에서 item 틀에 맞춰 ViewHolder 만들고 해당 ViewHolder 가 화면에 보여질만큼 충분히
@@ -180,7 +203,8 @@ class CrimeListFragment : Fragment() {
 
         // onBindViewHolder 에서 CrimeHolder 와 데이터셋 내부 위치를 전달
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-            val crime= crimes[position]
+//            val crime= crimes[position]
+            val crime= getItem(position)
             when(holder) {
                 is CrimeHolder -> holder.bind(crime)
                 is CrimeRequirePoliceHolder -> holder.bind(crime)
@@ -192,7 +216,9 @@ class CrimeListFragment : Fragment() {
 //            }
         }
 
-        override fun getItemCount(): Int = crimes.size
+        override fun getItemCount(): Int = currentList.size
 
     }
+
 }
+

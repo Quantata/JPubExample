@@ -98,7 +98,11 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
     private fun updateUI() {
         titleField.setText(crime.title)
         dateButton.text = crime.date.toString()
-        solvedCheckBox.isChecked = crime.isSolved
+//        solvedCheckBox.isChecked = crime.isSolved
+        solvedCheckBox.apply {
+            isChecked = crime.isSolved
+            jumpDrawablesToCurrentState() // 애니메이션 생략
+        }
     }
 
     override fun onStart() {
@@ -150,6 +154,10 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
         updateUI()
     }
 
+    override fun onStop() {
+        super.onStop()
+        crimeListViewModel.saveCrime(crime)
+    }
     companion object {
         fun newInstance(crimeId: UUID): CrimeFragment {
             val args = Bundle().apply {
