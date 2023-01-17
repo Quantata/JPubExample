@@ -20,6 +20,8 @@ import java.util.*
 
 private const val TAG = "CrimeFragment"
 private const val ARG_CRIME_ID = "crime_id"
+private const val DIALOG_DATE = "Dialogue"
+
 class CrimeFragment : Fragment() {
     private lateinit var crime: Crime
     private lateinit var titleField: EditText
@@ -38,7 +40,6 @@ class CrimeFragment : Fragment() {
      * Fragment 에서는 View 를 onCreate 에서 inflate(객체화 시켜 메모리에 올려놓는 것(layout 을 원하는 것으로 변경 가능)) 하지 않음.
      * onCreateView 에서 생성하고 구성함
      */
-    lateinit var crimeId2: UUID
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         crime = Crime()
@@ -67,10 +68,10 @@ class CrimeFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_crime, container, false)
         titleField = view.findViewById(R.id.crime_title) as EditText
         dateButton = view.findViewById(R.id.crime_date) as Button
-        dateButton.apply {
-            text = crime.date.toString()
-            isEnabled = false
-        }
+//        dateButton.apply {
+//            text = crime.date.toString()
+//            isEnabled = false
+//        }
 
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
 
@@ -116,6 +117,14 @@ class CrimeFragment : Fragment() {
 
         solvedCheckBox.apply {
             setOnCheckedChangeListener { _, isChecked -> crime.isSolved = isChecked }
+        }
+
+        dateButton.setOnClickListener {
+            DatePickerFragment().apply {
+                // FragmentTransaction 을 쓰면 트랜잭션 생성 후 커밋해줘야하는데
+                // FragmentManager 는 자동으로 트랜잭션을 만들고 커밋해줌
+                show(this@CrimeFragment.parentFragmentManager, DIALOG_DATE)
+            }
         }
     }
 
