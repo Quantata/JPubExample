@@ -3,9 +3,12 @@ package com.nancone.criminalintent.ui
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.icu.util.Calendar
+import android.icu.util.GregorianCalendar
 import android.os.Build
 import android.os.Bundle
+import android.widget.DatePicker
 import androidx.annotation.RequiresApi
+import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import java.util.*
 
@@ -19,8 +22,18 @@ import java.util.*
 private const val ARG_DATE = "date"
 class DatePickerFragment : DialogFragment() {
 
+    interface Callbacks {
+        fun onDateSelected(date: Date)
+    }
+
     @RequiresApi(Build.VERSION_CODES.N) // 24 이상
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val dateListener = DatePickerDialog.OnDateSetListener {
+                _: DatePicker, year:Int, month: Int, day: Int ->
+            val resultDate : Date = GregorianCalendar(year, month, day).time
+            parentFragmentManager.setFragmentResult(KEY_DATE, bundleOf(KEY_DATE to resultDate))
+        }
+
         val date = arguments?.getSerializable(ARG_DATE) as Date
         val calendar = Calendar.getInstance()
         calendar.time = date
@@ -30,7 +43,8 @@ class DatePickerFragment : DialogFragment() {
 
         return DatePickerDialog(
             requireContext(),
-            null,
+//            null,
+            dateListener,
             initialYear,
             initialMonth,
             initialDay

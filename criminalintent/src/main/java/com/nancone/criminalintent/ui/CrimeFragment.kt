@@ -10,7 +10,10 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentResultListener
 import androidx.lifecycle.ViewModelProvider
 import com.nancone.criminalintent.R
 import com.nancone.criminalintent.model.Crime
@@ -20,9 +23,10 @@ import java.util.*
 
 private const val TAG = "CrimeFragment"
 private const val ARG_CRIME_ID = "crime_id"
-private const val DIALOG_DATE = "Dialogue"
+private const val DIALOG_DATE = "DialogDate"
+const val KEY_DATE = "crime_date"
 
-class CrimeFragment : Fragment() {
+class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
     private lateinit var crime: Crime
     private lateinit var titleField: EditText
     private lateinit var dateButton: Button
@@ -126,12 +130,24 @@ class CrimeFragment : Fragment() {
 //                show(this@CrimeFragment.parentFragmentManager, DIALOG_DATE)
 //            }
 
+            // setTargetFragment is deprecated
+            parentFragmentManager.setFragmentResultListener(KEY_DATE, viewLifecycleOwner,
+                FragmentResultListener { key, bundle ->
+                    if(key == KEY_DATE) {
+                        onDateSelected(bundle.getSerializable(KEY_DATE) as Date)
+                    }})
+
             DatePickerFragment.newInstance(crime.date).apply {
                 // FragmentTransaction 을 쓰면 트랜잭션 생성 후 커밋해줘야하는데
                 // FragmentManager 는 자동으로 트랜잭션을 만들고 커밋해줌
                 show(this@CrimeFragment.parentFragmentManager, DIALOG_DATE)
             }
         }
+    }
+
+    override fun onDateSelected(date: Date) {
+        crime.date = date
+        updateUI()
     }
 
     companion object {
