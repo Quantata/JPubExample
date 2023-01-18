@@ -3,30 +3,27 @@ package com.nancone.criminalintent.ui
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentResultListener
 import androidx.lifecycle.ViewModelProvider
 import com.nancone.criminalintent.R
 import com.nancone.criminalintent.model.Crime
 import com.nancone.criminalintent.viewmodel.CrimeListViewModel
-import java.text.DateFormat
 import java.util.*
 
 private const val TAG = "CrimeFragment"
 private const val ARG_CRIME_ID = "crime_id"
 private const val DIALOG_DATE = "DialogDate"
+private const val DIALOG_TIME = "DialogTime"
 const val KEY_DATE = "crime_date"
 
-class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
+class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragment.Callbacks {
     private lateinit var crime: Crime
     private lateinit var titleField: EditText
     private lateinit var dateButton: Button
@@ -76,7 +73,6 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
 //            text = crime.date.toString()
 //            isEnabled = false
 //        }
-
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
 
         return view
@@ -147,16 +143,32 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
                 show(this@CrimeFragment.parentFragmentManager, DIALOG_DATE)
             }
         }
+
     }
 
     override fun onDateSelected(date: Date) {
+//        TimePickerFragment().apply {
+//            show(this@CrimeFragment.parentFragmentManager, DIALOG_TIME)
+//        }
+        TimePickerFragment.newInstance(date).apply {
+            show(this@CrimeFragment.parentFragmentManager, DIALOG_TIME)
+        }
+        parentFragmentManager.setFragmentResultListener(KEY_DATE, viewLifecycleOwner,
+            FragmentResultListener { key, bundle ->
+                if(key == KEY_DATE) {
+                    val date = bundle.getSerializable(KEY_DATE) as Date
+//                    date.time = bundle.getSerializable(ARG_TIME) as Time
+                    onTimeSelected(date)
+                }})
+    }
+
+    override fun onTimeSelected(date: Date) {
         crime.date = date
         updateUI()
     }
-
     override fun onStop() {
         super.onStop()
-        crimeListViewModel.saveCrime(crime)
+        crimeListViewModel.saveCrime(crime) // 저장
     }
     companion object {
         fun newInstance(crimeId: UUID): CrimeFragment {
