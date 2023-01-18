@@ -8,4 +8,7 @@
 
     <string name="new_crime">새로운 범죄</string>
     <string name="no_crime_data">범죄 데이터 없음</string>
+
+    <string name="crime_suspect_text">용의자 선택</string>
+    <string name="crime_report_text">범죄보고서 전송</string>
 </resources>

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.room.Room
 import com.nancone.criminalintent.database.CrimeDatabase
+import com.nancone.criminalintent.database.migration_1_2
 import com.nancone.criminalintent.model.Crime
 import java.util.*
 import java.util.concurrent.Executors
@@ -19,6 +20,7 @@ class CrimeRepository private constructor(context: Context) {
         DATABASE_NAME
     )
 //        .fallbackToDestructiveMigration()
+        .addMigrations(migration_1_2)
         .build()
 
     // dao 객체 참조
