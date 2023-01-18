@@ -3,9 +3,7 @@ package com.nancone.criminalintent.ui
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -52,6 +50,12 @@ class CrimeListFragment : Fragment() {
         ViewModelProvider(this)[CrimeListViewModel::class.java]
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // CrimeListFragment가 메뉴 콜백 호출을 받아야 함을 FragmentManager에 알려주는 코드
+        setHasOptionsMenu(true)
+
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -85,6 +89,24 @@ class CrimeListFragment : Fragment() {
     private fun updateUI(crimes: List<Crime>) {
 //        adapter = CrimeAdapter(crimes)
 //        crimeRecyclerView.adapter = adapter
+    }
+
+    // AppBar에 Menu 선택
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.fragment_crime_list, menu) // 정의된 Action item으로 menu가 채워짐
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when(item.itemId) {
+            R.id.new_crime -> {
+                val crime: Crime = Crime()
+                crimeListViewModel.addCrime(crime)
+                callbacks?.onCrimesSelected(crime.id)
+                true
+            }
+            else -> false
+        }
     }
 
     companion object {

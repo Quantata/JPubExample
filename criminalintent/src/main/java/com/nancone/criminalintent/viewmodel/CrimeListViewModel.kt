@@ -27,6 +27,10 @@ class CrimeListViewModel : ViewModel() {
     fun saveCrime(crime:Crime) {
         crimeRepository.updateCrime(crime)
     }
+
+    fun addCrime(crime: Crime) {
+        crimeRepository.addCrime(crime)
+    }
 //    val crimes = crimeRepository.getCrimes()
 
 //    val crimes = mutableListOf<Crime>()
