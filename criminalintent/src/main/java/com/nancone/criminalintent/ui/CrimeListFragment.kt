@@ -4,13 +4,12 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
+import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.*
+import androidx.recyclerview.widget.ListAdapter
 import com.nancone.criminalintent.R
 import com.nancone.criminalintent.model.Crime
 import com.nancone.criminalintent.model.CrimeType
@@ -39,6 +38,8 @@ class CrimeListFragment : Fragment() {
         callbacks = null
     }
     private lateinit var crimeRecyclerView: RecyclerView
+    private lateinit var emptyCrimeListLayout: LinearLayoutCompat
+    private lateinit var btnAddCrime: Button
 //    private var adapter: CrimeAdapter? = CrimeAdapter(emptyList()) // initialize empty list
     private var adapter: CrimeAdapter? = CrimeAdapter() // initialize empty list
 
@@ -66,6 +67,14 @@ class CrimeListFragment : Fragment() {
         // recyclerview 설정
         crimeRecyclerView =
             view.findViewById(R.id.crime_recycler_view) as RecyclerView
+        emptyCrimeListLayout =
+            view.findViewById(R.id.empty_crime_layout) as LinearLayoutCompat
+        btnAddCrime =
+            view.findViewById(R.id.btn_add_crime) as Button
+        btnAddCrime.setOnClickListener {
+            addNewCrime()
+        }
+
         crimeRecyclerView.layoutManager = LinearLayoutManager(context)
 
         crimeRecyclerView.adapter = adapter
@@ -78,6 +87,8 @@ class CrimeListFragment : Fragment() {
             viewLifecycleOwner,
             androidx.lifecycle.Observer { crimes ->
                 crimes?.let {
+                    emptyCrimeListLayout.visibility = if(crimes.isEmpty()) View.VISIBLE else View.GONE
+
                     Log.d(TAG, "onViewCreated: Got crimes ${crimes.size}")
                     adapter?.submitList(crimes)
 //                    updateUI(crimes)
@@ -97,12 +108,16 @@ class CrimeListFragment : Fragment() {
         inflater.inflate(R.menu.fragment_crime_list, menu) // 정의된 Action item으로 menu가 채워짐
     }
 
+    private fun addNewCrime() {
+        val crime: Crime = Crime()
+        crimeListViewModel.addCrime(crime)
+        callbacks?.onCrimesSelected(crime.id)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when(item.itemId) {
             R.id.new_crime -> {
-                val crime: Crime = Crime()
-                crimeListViewModel.addCrime(crime)
-                callbacks?.onCrimesSelected(crime.id)
+               addNewCrime()
                 true
             }
             else -> false

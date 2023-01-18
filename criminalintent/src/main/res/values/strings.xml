@@ -7,4 +7,5 @@
     <string name="crime_requires_police">경찰에 연락</string>
 
     <string name="new_crime">새로운 범죄</string>
+    <string name="no_crime_data">범죄 데이터 없음</string>
 </resources>
