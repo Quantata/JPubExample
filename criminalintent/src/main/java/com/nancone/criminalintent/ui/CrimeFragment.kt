@@ -1,20 +1,31 @@
 package com.nancone.criminalintent.ui
 
+import android.app.Activity.RESULT_OK
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.net.Uri
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.text.Editable
 import android.text.TextWatcher
+import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentResultListener
 import androidx.lifecycle.ViewModelProvider
 import com.nancone.criminalintent.R
 import com.nancone.criminalintent.model.Crime
 import com.nancone.criminalintent.viewmodel.CrimeListViewModel
+import kotlinx.coroutines.delay
 import java.util.*
 
 private const val TAG = "CrimeFragment"
@@ -22,12 +33,15 @@ private const val ARG_CRIME_ID = "crime_id"
 private const val DIALOG_DATE = "DialogDate"
 private const val DIALOG_TIME = "DialogTime"
 const val KEY_DATE = "crime_date"
+private val DATE_FORMAT = "yyyy년 M월 d일 H시 m분, E요일"
 
 class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragment.Callbacks {
     private lateinit var crime: Crime
     private lateinit var titleField: EditText
     private lateinit var dateButton: Button
     private lateinit var solvedCheckBox: CheckBox
+    private lateinit var reportButton: Button
+    private lateinit var suspectButton: Button
 
     // CrimeListViewModel 참조
     // ViewModel이 Fragment와 같이 사용되면 ViewModel의 생명주기는 Fragment의 생명주기를 따라감
@@ -74,7 +88,8 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
 //            isEnabled = false
 //        }
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
-
+        reportButton = view.findViewById(R.id.crime_report) as Button
+        suspectButton = view.findViewById(R.id.crime_suspect) as Button
         return view
     }
 
@@ -98,6 +113,10 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
         solvedCheckBox.apply {
             isChecked = crime.isSolved
             jumpDrawablesToCurrentState() // 애니메이션 생략
+        }
+
+        if (crime.suspect.isNotEmpty()) {
+            suspectButton.text = crime.suspect
         }
     }
 
@@ -144,7 +163,72 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
             }
         }
 
+        // 보고서 전송
+        reportButton.setOnClickListener {
+            Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, getCrimeReport()) // 데이터
+                putExtra(Intent.EXTRA_SUBJECT, getString(R.string.crime_report_subject)) // 제목: 범죄 보고서
+            }.also { intent ->
+//                startActivity(intent) // 사용자가 어떤 앱을 항상 허용으로 했다면 다음부터는 chooser 없이 해당 앱으로 열림
+
+                val chooserIntent =
+                    Intent.createChooser(intent, getString(R.string.send_report)) // 사용자가 어떤 앱을 항상 허용했더라도 처리할 수 있는 activity가 하나 이상이면 항상 chooser 창을 열어줌
+                startActivity(chooserIntent)
+            }
+        }
+
+        // 용의자 전송
+        suspectButton.apply {
+            val pickContentIntent =
+                Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
+
+            setOnClickListener {
+                suspectResult.launch(pickContentIntent)
+            }
+
+            // 연락처 앱이 없으면 버튼 비활성화
+            val packageManager: PackageManager = requireActivity().packageManager
+            val resolveActivity: ResolveInfo? =
+                packageManager.resolveActivity(pickContentIntent, PackageManager.MATCH_DEFAULT_ONLY)
+            if (resolveActivity == null)
+                isEnabled = false
+        }
     }
+
+    // startActivityResult is deprecated 1
+    // 1:1로 매칭됨.
+    private val suspectResult =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            result ->
+            when {
+                result.resultCode != RESULT_OK -> return@registerForActivityResult // RESULT_OK 가 아니면 return
+
+                result.resultCode == RESULT_OK && result.data != null -> {
+                    val contactUri: Uri = result.data?.data ?: return@registerForActivityResult
+
+                    // 쿼리에서 값으로 반환할 필드를 지정한다
+                    val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
+
+                    // 쿼리를 수행한다. contactUri는 콘턴츠 제공자의 테이블을 나타낸다.
+                    val cursor = context?.contentResolver?.query(contactUri, queryFields, null, null, null)
+                    cursor?.use {
+                        // 쿼리 결과 테이터가 있는지 확딘한다.
+                        if(it.count == 0) {
+                            return@registerForActivityResult
+                        }
+
+                        // 첫번째 데이터 행의 첫번째 열의 값을 가져온다.
+                        // 이 값이 용의자의 이름이다
+                        it.moveToFirst()
+                        val suspect = it.getString(0)
+                        crime.suspect = suspect
+                        crimeListViewModel.saveCrime(crime)
+                        suspectButton.text = suspect
+                    }
+                }
+            }
+        }
 
     override fun onDateSelected(date: Date) {
 //        TimePickerFragment().apply {
@@ -179,5 +263,23 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
                 arguments = args
             }
         }
+    }
+
+    private fun getCrimeReport(): String {
+        val solvedString =
+            if(crime.isSolved)
+                getString(R.string.crime_report_solved)
+            else
+                getString(R.string.crime_report_unsolved)
+
+        val dateString = DateFormat.format(DATE_FORMAT, crime.date).toString()
+        var suspect =
+            if (crime.suspect.isBlank())
+                getString(R.string.crime_report_no_suspect)
+            else
+                getString(R.string.crime_report_suspect, crime.suspect)
+
+        return getString(R.string.crime_report,
+            crime.title, dateString, solvedString, suspect)
     }
 }
