@@ -2,6 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.nancone.criminalintent">
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="content" android:host="com.android.contacts"
+                android:mimeType="vnd.android.cursor.item/*" />
+        </intent>
+    </queries>
+
     <application
         android:name=".CriminalIntentApplication"
         android:allowBackup="true"
