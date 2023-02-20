@@ -5,20 +5,20 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.hardware.camera2.CameraAccessException
 import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.EditText
-import android.widget.Toast
+import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentResultListener
 import androidx.lifecycle.ViewModelProvider
@@ -26,6 +26,7 @@ import com.nancone.criminalintent.R
 import com.nancone.criminalintent.model.Crime
 import com.nancone.criminalintent.viewmodel.CrimeListViewModel
 import kotlinx.coroutines.delay
+import java.io.File
 import java.util.*
 
 private const val TAG = "CrimeFragment"
@@ -42,6 +43,11 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
     private lateinit var solvedCheckBox: CheckBox
     private lateinit var reportButton: Button
     private lateinit var suspectButton: Button
+
+    private lateinit var photoButton: ImageButton
+    private lateinit var photoView: ImageView
+    private lateinit var photoFile: File
+    private lateinit var photoUri: Uri
 
     // CrimeListViewModel 참조
     // ViewModel이 Fragment와 같이 사용되면 ViewModel의 생명주기는 Fragment의 생명주기를 따라감
@@ -90,6 +96,10 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
         reportButton = view.findViewById(R.id.crime_report) as Button
         suspectButton = view.findViewById(R.id.crime_suspect) as Button
+
+        photoButton = view.findViewById(R.id.crime_camera) as ImageButton
+        photoView = view.findViewById(R.id.crime_photo) as ImageView
+
         return view
     }
 
@@ -100,6 +110,11 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
             androidx.lifecycle.Observer { crime ->
                 crime?.let {
                     this.crime = crime
+                    photoFile = crimeListViewModel.getPhotoCrime(crime)
+                    // getUriForFile() 을 통해 로컬 파일 시스템의 파일 경로를 카메라 앱에서 알 수 있는 Uri로 변환한다
+                    photoUri = FileProvider.getUriForFile(requireActivity(),
+                        "com.nanacone.criminalintent.fileprovider",
+                        photoFile)
                     updateUI()
                 }
             }
@@ -194,6 +209,37 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
             if (resolveActivity == null)
                 isEnabled = false
         }
+
+        photoButton.apply {
+            val packageManager: PackageManager = requireActivity().packageManager
+
+            val captureImage = Intent(MediaStore.ACTION_IMAGE_CAPTURE) // 카메라 앱을 시작시키고 찍은 사진을 받을 수 있게 해줌
+            val resolvedActivity: ResolveInfo? =
+                packageManager.resolveActivity(captureImage, PackageManager.MATCH_DEFAULT_ONLY)
+            if(resolvedActivity == null) { // 앱이 장치에 없거나, 사진을 저장할 위치가 없으면 카메라 버튼 비활성화
+                isEnabled = false
+            }
+
+            setOnClickListener {
+                captureImage.putExtra(MediaStore.EXTRA_OUTPUT, photoUri) // EXTRA_OUTPUT : 요청된 이미지나 비디오를 저장하는 때 쓰이는 content resolver Uri의 이름
+
+                val cameraActivities: List<ResolveInfo> =
+                    packageManager.queryIntentActivities(captureImage, PackageManager.MATCH_DEFAULT_ONLY)
+
+                for (cameraActivity in cameraActivities) {
+                    // photoUri가 가리키는 위치에 실제로 사진 파일을 쓰려면 카메라 앱 퍼미션이 필요.
+                    // 따라서 cameraImage 인텐트를 처리할 수 있는 모든 Activity에 Intent.FLAG_GRANT_WRITE_URI_PERMISSION을 부여 함.(Manifest에 grantUriPermissions 속성을 추가했기 때문에 permission 부여 가능)
+                    // 이러면 해당 activity(=cameraImage 인텐트를 처리할 수 있는 cameraActivity) 들이 Uri에 쓸 수 있는 Permission을 갖는다.
+                    requireActivity().grantUriPermission(
+                        cameraActivity.activityInfo.packageName,
+                        photoUri,
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    )
+                }
+                cameraCaptureResult.launch(captureImage)
+
+            }
+        }
     }
 
     // startActivityResult is deprecated 1
@@ -226,6 +272,20 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
                         crimeListViewModel.saveCrime(crime)
                         suspectButton.text = suspect
                     }
+
+                }
+            }
+        }
+    private val cameraCaptureResult =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                result ->
+            when {
+                result.resultCode != RESULT_OK -> return@registerForActivityResult // RESULT_OK 가 아니면 return
+
+                result.resultCode == RESULT_OK && result.data != null -> {
+                    val contactUri: Uri = result.data?.data ?: return@registerForActivityResult
+
+
                 }
             }
         }

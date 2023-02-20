@@ -6,6 +6,7 @@ import androidx.room.Room
 import com.nancone.criminalintent.database.CrimeDatabase
 import com.nancone.criminalintent.database.migration_1_2
 import com.nancone.criminalintent.model.Crime
+import java.io.File
 import java.util.*
 import java.util.concurrent.Executors
 
@@ -26,7 +27,7 @@ class CrimeRepository private constructor(context: Context) {
     // dao 객체 참조
     private val crimeDao = database.crimeDao() // 정의한 인터페이스를 기반으로 Room이 함수를 자동생성
     private val executor = Executors.newSingleThreadExecutor() // 새로운 스레드를 참조하는 executor 반환
-
+    private val filesDir = context.applicationContext.filesDir
 
     // LiveData를 반환하여 백그라운드에서 쿼리를 자동으로 수행시키고 LiveData가 해당 데이터를 mainThread로 전달 -> UI 변경 가능
     fun getCrimes(): LiveData<List<Crime>> = crimeDao.getCrimes()
@@ -44,6 +45,8 @@ class CrimeRepository private constructor(context: Context) {
             crimeDao.addCrime(crime)
         }
     }
+
+    fun getPhotoFile(crime: Crime) : File = File(filesDir, crime.photoFileName)
     companion object {
         private var INSTANCE: CrimeRepository? = null
 

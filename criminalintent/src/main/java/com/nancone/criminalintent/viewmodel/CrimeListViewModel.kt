@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.nancone.criminalintent.dao.CrimeRepository
 import com.nancone.criminalintent.model.Crime
 import com.nancone.criminalintent.model.CrimeType
+import java.io.File
 import java.util.*
 
 class CrimeListViewModel : ViewModel() {
@@ -26,6 +27,10 @@ class CrimeListViewModel : ViewModel() {
 
     fun saveCrime(crime:Crime) {
         crimeRepository.updateCrime(crime)
+    }
+
+    fun getPhotoCrime(crime: Crime): File {
+        return crimeRepository.getPhotoFile(crime)
     }
 
     fun addCrime(crime: Crime) {

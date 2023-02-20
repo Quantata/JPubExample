@@ -11,5 +11,9 @@ data class Crime(
     var date: Date = Date(),
     var isSolved: Boolean = false,
     var requiresPolice: Int = CrimeType.normalCrime,
-    var suspect: String = "")
+    var suspect: String = "") {
+
+    val photoFileName
+        get() = "IMG_$id.jpg"
+}
 
