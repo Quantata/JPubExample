@@ -7,8 +7,6 @@ import android.graphics.Point
 import android.os.Build
 import android.view.WindowManager
 import android.view.WindowMetrics
-import androidx.annotation.RequiresApi
-import androidx.annotation.Size
 import kotlin.math.roundToInt
 
 // Bitmap 은 pixel 데이터를 저장하는 간단한 객체

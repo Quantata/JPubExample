@@ -23,6 +23,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentResultListener
 import androidx.lifecycle.ViewModelProvider
 import com.nancone.criminalintent.R
+import com.nancone.criminalintent.getScaledBitmap
 import com.nancone.criminalintent.model.Crime
 import com.nancone.criminalintent.viewmodel.CrimeListViewModel
 import kotlinx.coroutines.delay
@@ -132,6 +133,17 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
 
         if (crime.suspect.isNotEmpty()) {
             suspectButton.text = crime.suspect
+        }
+        updatePhotoView()
+    }
+
+    // ImageView에 Bitmap을 로드하기 위한 함수
+    private fun updatePhotoView() {
+        if (photoFile.exists()) {
+            val bitmap = getScaledBitmap(photoFile.path, requireActivity())
+            photoView.setImageBitmap(bitmap)
+        } else {
+            photoView.setImageDrawable(null)
         }
     }
 
@@ -281,12 +293,12 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
                 result ->
             when {
                 result.resultCode != RESULT_OK -> return@registerForActivityResult // RESULT_OK 가 아니면 return
-
-                result.resultCode == RESULT_OK && result.data != null -> {
-                    val contactUri: Uri = result.data?.data ?: return@registerForActivityResult
-
-
-                }
+                result.resultCode == RESULT_OK -> updatePhotoView()
+//                result.resultCode == RESULT_OK && result.data != null -> {
+//                    val contactUri: Uri = result.data?.data ?: return@registerForActivityResult
+//
+//
+//                }
             }
         }
 
