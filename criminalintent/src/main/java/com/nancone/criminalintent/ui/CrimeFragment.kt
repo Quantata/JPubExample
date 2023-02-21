@@ -293,7 +293,11 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
                 result ->
             when {
                 result.resultCode != RESULT_OK -> return@registerForActivityResult // RESULT_OK 가 아니면 return
-                result.resultCode == RESULT_OK -> updatePhotoView()
+                result.resultCode == RESULT_OK -> {
+                    // 정상적으로 카메라 앱 사용하여 파일을 저장한 후
+                    requireActivity().revokeUriPermission(photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION) // Uri에 파일을 쓸 수 있는 권한 취소
+                    updatePhotoView()
+                }
 //                result.resultCode == RESULT_OK && result.data != null -> {
 //                    val contactUri: Uri = result.data?.data ?: return@registerForActivityResult
 //
@@ -325,6 +329,11 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
     override fun onStop() {
         super.onStop()
         crimeListViewModel.saveCrime(crime) // 저장
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        requireActivity().revokeUriPermission(photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION) // Uri에 파일을 쓸 수 있는 권한 취소
     }
     companion object {
         fun newInstance(crimeId: UUID): CrimeFragment {
