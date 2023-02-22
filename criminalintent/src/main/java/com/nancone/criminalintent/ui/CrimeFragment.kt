@@ -151,11 +151,21 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
         super.onStart()
 
         val titleWatcher = object : TextWatcher {
-            override fun beforeTextChanged(sequence: CharSequence?, start: Int, count: Int, after: Int) {
+            override fun beforeTextChanged(
+                sequence: CharSequence?,
+                start: Int,
+                count: Int,
+                after: Int
+            ) {
                 // 비워둠
             }
 
-            override fun onTextChanged(sequence: CharSequence?, start: Int, before: Int, count: Int) {
+            override fun onTextChanged(
+                sequence: CharSequence?,
+                start: Int,
+                before: Int,
+                count: Int
+            ) {
                 crime.title = sequence.toString()
             }
 
@@ -179,9 +189,10 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
             // setTargetFragment is deprecated
             parentFragmentManager.setFragmentResultListener(KEY_DATE, viewLifecycleOwner,
                 FragmentResultListener { key, bundle ->
-                    if(key == KEY_DATE) {
+                    if (key == KEY_DATE) {
                         onDateSelected(bundle.getSerializable(KEY_DATE) as Date)
-                    }})
+                    }
+                })
 
             DatePickerFragment.newInstance(crime.date).apply {
                 // FragmentTransaction 을 쓰면 트랜잭션 생성 후 커밋해줘야하는데
@@ -195,12 +206,18 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
             Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
                 putExtra(Intent.EXTRA_TEXT, getCrimeReport()) // 데이터
-                putExtra(Intent.EXTRA_SUBJECT, getString(R.string.crime_report_subject)) // 제목: 범죄 보고서
+                putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    getString(R.string.crime_report_subject)
+                ) // 제목: 범죄 보고서
             }.also { intent ->
 //                startActivity(intent) // 사용자가 어떤 앱을 항상 허용으로 했다면 다음부터는 chooser 없이 해당 앱으로 열림
 
                 val chooserIntent =
-                    Intent.createChooser(intent, getString(R.string.send_report)) // 사용자가 어떤 앱을 항상 허용했더라도 처리할 수 있는 activity가 하나 이상이면 항상 chooser 창을 열어줌
+                    Intent.createChooser(
+                        intent,
+                        getString(R.string.send_report)
+                    ) // 사용자가 어떤 앱을 항상 허용했더라도 처리할 수 있는 activity가 하나 이상이면 항상 chooser 창을 열어줌
                 startActivity(chooserIntent)
             }
         }
@@ -225,18 +242,25 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
         photoButton.apply {
             val packageManager: PackageManager = requireActivity().packageManager
 
-            val captureImage = Intent(MediaStore.ACTION_IMAGE_CAPTURE) // 카메라 앱을 시작시키고 찍은 사진을 받을 수 있게 해줌
+            val captureImage =
+                Intent(MediaStore.ACTION_IMAGE_CAPTURE) // 카메라 앱을 시작시키고 찍은 사진을 받을 수 있게 해줌
             val resolvedActivity: ResolveInfo? =
                 packageManager.resolveActivity(captureImage, PackageManager.MATCH_DEFAULT_ONLY)
-            if(resolvedActivity == null) { // 앱이 장치에 없거나, 사진을 저장할 위치가 없으면 카메라 버튼 비활성화
+            if (resolvedActivity == null) { // 앱이 장치에 없거나, 사진을 저장할 위치가 없으면 카메라 버튼 비활성화
                 isEnabled = false
             }
 
             setOnClickListener {
-                captureImage.putExtra(MediaStore.EXTRA_OUTPUT, photoUri) // EXTRA_OUTPUT : 요청된 이미지나 비디오를 저장하는 때 쓰이는 content resolver Uri의 이름
+                captureImage.putExtra(
+                    MediaStore.EXTRA_OUTPUT,
+                    photoUri
+                ) // EXTRA_OUTPUT : 요청된 이미지나 비디오를 저장하는 때 쓰이는 content resolver Uri의 이름
 
                 val cameraActivities: List<ResolveInfo> =
-                    packageManager.queryIntentActivities(captureImage, PackageManager.MATCH_DEFAULT_ONLY)
+                    packageManager.queryIntentActivities(
+                        captureImage,
+                        PackageManager.MATCH_DEFAULT_ONLY
+                    )
 
                 for (cameraActivity in cameraActivities) {
                     // photoUri가 가리키는 위치에 실제로 사진 파일을 쓰려면 카메라 앱 퍼미션이 필요.
@@ -251,6 +275,28 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
                 cameraCaptureResult.launch(captureImage)
 
             }
+        }
+
+        photoView.setOnClickListener {
+            val ft = parentFragmentManager.beginTransaction()
+            val prev = parentFragmentManager.findFragmentByTag("dialogImg")
+            prev?.also { ft.remove(prev) }
+
+            CrimeImgDialogFragment.newInstance(
+                bitmap =
+                if (photoFile.exists()) {
+                    getScaledBitmap(photoFile.path, requireActivity())
+                } else {
+                    null
+                }
+            ).show(ft, "dialogImg")
+//            (if(photoFile.exists())
+//                getScaledBitmap(photoFile.path, requireActivity())
+//            else
+//                null)?.let { it1 ->
+//                CrimeImgDialogFragment.newInstance(bitmap =
+//                it1
+//                ).show(ft, "dialogImg")
         }
     }
 
