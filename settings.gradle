@@ -16,3 +16,4 @@ rootProject.name = "JPubExample"
 include ':app'
 include ':geoquiz'
 include ':criminalintent'
+include ':beatbox'

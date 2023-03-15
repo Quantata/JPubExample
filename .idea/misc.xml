@@ -5,6 +5,8 @@
       <map>
         <entry key="../../../../layout/custom_preview.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.4557291666666667" />
+        <entry key="beatbox/src/main/res/layout/activity_main.xml" value="0.26197916666666665" />
+        <entry key="beatbox/src/main/res/layout/list_item_sound.xml" value="0.2609375" />
         <entry key="criminalintent/src/main/res/drawable/ic_launcher_background.xml" value="0.1625" />
         <entry key="criminalintent/src/main/res/layout/activity_main.xml" value="0.22760416666666666" />
         <entry key="criminalintent/src/main/res/layout/fragment_crime.xml" value="0.2265625" />
