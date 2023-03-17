@@ -15,6 +15,11 @@ class BeatBox(private val assets: AssetManager) {
         .setMaxStreams(MAX_SOUNDS)  // 현재 시점에서 재생할 음원의 최대 개수
         .build()
 
+    var playSpeed = 1.0f
+        set(speed) {
+            field = speed
+        }
+
     init {
         sounds = loadSounds()
     }
@@ -27,7 +32,7 @@ class BeatBox(private val assets: AssetManager) {
              * loop : 반복 재생 여부(0: 반복 안함, -1: 무한 반복, 그 외: 숫자만큼 반복 횟수)
              * rate: 재생률(1: 녹음 속도 그대로, 2: 두 배 빠르게, 0.5: 절반 느리게)
              */
-            soundPool.play(it, 1.0f, 1.0f, 1, 0, 1.0f)
+            soundPool.play(it, 1.0f, 1.0f, 1, 0, playSpeed)
         }
     }
 

@@ -13,7 +13,6 @@ import com.nanacone.beatbox.databinding.ListItemSoundBinding
 class MainActivity : AppCompatActivity() {
 
     private lateinit var beatBox: BeatBox
-    private lateinit var soundViewModel: SoundViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,7 +28,7 @@ class MainActivity : AppCompatActivity() {
             adapter = SoundAdapter(beatBox.sounds)
         }
 
-        binding.seekbar.progress = 5
+        binding.seekbar.progress = 10
         binding.seekbarTitle.text = String.format(getString(R.string.seekbar_title), binding.seekbar.progress/10.0)
 
 
@@ -47,19 +46,17 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) { // seekbar 조작이 시작했을 때 작동
-//                seekBar?.progress =
-//                    if(seekBar?.progress!! % 10 < 5) (seekBar.progress/10) * 10 // progress 는 5 = 0.5 / 12 -> 1 * 10 = 10
-//                    else (seekBar.progress/10) * 15 // 17 -> 1 * 15 = 15
-
-                // text 설정
-                binding.seekbarTitle.text = String.format(getString(R.string.seekbar_title), "${(seekBar?.progress ?: 5)/10.0}")
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) { // seekbar 조작이 끝났을 때 작동
-                // text 설정
-                binding.seekbarTitle.text = String.format(getString(R.string.seekbar_title), "${(seekBar?.progress ?: 10)/10.0}")
-//                soundViewModel.sound?.let { beatBox.play(sound = it, seekBar?.progress) }
-
+                // 모든 SoundViewModel에는 beatbox가 들어가 있음.
+                // 해당 beatbox는 단 하나의 객체
+                // item마다 갖고 있는 각 SoundViewModel에서 바라보는 beatBox는 하나
+                // beatBox의 palySpeed가 달라지면 SoundViewModel에서 이 sound로 beatbox에서 호출해 주세요~
+                // 할때 설정된 beatBox의 재생 속도로 재생됨.
+                beatBox.playSpeed = seekBar?.progress!!/10.0.toFloat()
+//                soundViewModel.setPlaySpeed(seekBar?.progress!!/10.0.toFloat())
+//                soundViewModel.sound?.let { beatBox.play(it, seekBar?.progress!!/ 10.0.toFloat()) }
             }
         })
     }
@@ -74,10 +71,7 @@ class MainActivity : AppCompatActivity() {
             RecyclerView.ViewHolder(binding.root) {
                 init {
                     // list_item_sound.xml 에 viewmodel <data> 선언으로 ListItemSoundBinding 에서 viewmodel 을 속성으로 가짐
-                    soundViewModel = SoundViewModel(beatBox)
-//                    binding.viewModel = SoundViewModel(beatBox) // 초기화
-                    binding.viewModel = soundViewModel // 초기화
-
+                    binding.viewModel = SoundViewModel(beatBox) // 초기화 // sound 마다 viewModel 이 있는 것임
                 }
 
                 fun bind(sound: Sound) {
